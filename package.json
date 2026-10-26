@@ -1,0 +1,25 @@
+{
+  "name": "aetheria-weather-india",
+  "version": "1.0.0",
+  "description": "Aetheria Weather India — Full-Stack Meteorological Dashboard with Express Backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "weather",
+    "india",
+    "meteorology",
+    "express",
+    "nodejs",
+    "dashboard"
+  ],
+  "author": "Aetheria Weather",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

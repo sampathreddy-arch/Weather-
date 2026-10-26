@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheria Weather — Modern Real-Time Meteorological Dashboard</title>
+  <meta name="description" content="Experience real-time live weather forecasts, 24-hour hourly projections, 7-day extended forecasts, and atmospheric insights with Aetheria Weather. Powered by OpenWeatherMap.">
+  <meta name="keywords" content="weather, forecast, meteorology, live temperature, radar, atmospheric conditions">
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌤️</text></svg>">
+</head>
+<body class="theme-clouds">
+  <!-- Dynamic Atmospheric Canvas Background -->
+  <canvas id="weather-canvas" class="weather-canvas" aria-hidden="true"></canvas>
+  <div class="background-overlay" aria-hidden="true"></div>
+
+  <!-- Main Application Wrapper -->
+  <div class="app-container" id="app-container">
+    
+    <!-- Header / Navigation Bar -->
+    <header class="app-header" id="app-header">
+      <div class="logo-group">
+        <div class="logo-icon-wrap" id="logo-icon-wrap">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            <path d="m11 13-2 3h3l-2 3" stroke="#f59e0b"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1 class="logo-title">Aetheria<span>Weather</span> <span class="india-brand-badge">🇮🇳 India</span></h1>
+          <span class="logo-subtitle" id="connection-status-pill">
+            <span class="status-dot"></span>
+            <span id="provider-status-text">India Meteorological Live</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Search Bar & Auto-suggestions (Strictly India) -->
+      <div class="search-section" id="search-section">
+        <form id="search-form" class="search-form" role="search" onsubmit="event.preventDefault();">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              id="city-search-input" 
+              class="city-search-input" 
+              placeholder="Search Indian city, district or state (e.g. Pune, Jaipur)..." 
+              autocomplete="off" 
+              spellcheck="false"
+              aria-label="Search Indian city or state for weather forecast"
+            >
+            <button type="button" id="clear-search-btn" class="clear-search-btn hidden" aria-label="Clear search input">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <button type="button" id="geo-location-btn" class="geo-btn" title="Locate my position in India" aria-label="Locate my position">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
+              </svg>
+            </button>
+          </div>
+          <!-- Auto-suggestions dropdown -->
+          <div id="suggestions-dropdown" class="suggestions-dropdown hidden" role="listbox"></div>
+        </form>
+      </div>
+
+      <!-- Action Buttons (Unit Toggle & Settings) -->
+      <div class="header-controls">
+        <div class="unit-toggle" id="unit-toggle-group">
+          <button type="button" class="unit-btn active" id="unit-c-btn" aria-label="Celsius">°C</button>
+          <button type="button" class="unit-btn" id="unit-f-btn" aria-label="Fahrenheit">°F</button>
+        </div>
+        
+        <button type="button" id="settings-toggle-btn" class="icon-action-btn" title="API Key & Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Quick Location Chips, All Indian States & Favorites Bar -->
+    <section class="quick-locations-bar" id="quick-locations-bar" aria-label="Indian States and favorite cities">
+      <!-- 1. All States & UTs Button -->
+      <button type="button" class="all-states-chip-btn" id="open-all-states-btn" title="Explore All 28 States & 8 Union Territories of India">
+        <span class="india-flag-icon">🇮🇳</span>
+        <span class="btn-text">All States & UTs</span>
+        <span class="states-counter-badge">36</span>
+      </button>
+
+      <!-- 2. State Quick Dropdown Jump -->
+      <div class="state-quick-dropdown-wrap">
+        <select id="state-quick-select" class="state-quick-select" aria-label="Quick jump to Indian state or territory">
+          <option value="">Select State / UT (36)...</option>
+        </select>
+      </div>
+
+      <!-- 3. Locate My Position Button -->
+      <button type="button" class="my-location-chip-btn" id="my-location-chip-btn" title="Locate where you are in India">
+        <span class="pulse-dot"></span>
+        <span class="my-loc-label" id="my-loc-chip-label">📍 My Location</span>
+      </button>
+
+      <div class="quick-locations-divider" aria-hidden="true"></div>
+
+      <!-- 4. Pinned Cities Container -->
+      <div class="quick-locations-label">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span>Pinned:</span>
+      </div>
+      <div class="chips-container" id="chips-container">
+        <!-- Rendered via JavaScript -->
+      </div>
+      <button type="button" class="add-location-chip-btn" id="open-add-location-btn" aria-label="Add Indian City">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Add City</span>
+      </button>
+    </section>
+
+    <!-- Status / Notification Alert Banner (if needed) -->
+    <div id="notice-banner" class="notice-banner hidden" role="status">
+      <span class="notice-icon" id="notice-icon">ℹ️</span>
+      <span class="notice-text" id="notice-text"></span>
+      <button type="button" class="notice-close" id="notice-close-btn" aria-label="Dismiss">&times;</button>
+    </div>
+
+    <!-- Main Content Grid -->
+    <main class="dashboard-grid" id="dashboard-grid">
+
+      <!-- LEFT COLUMN: Primary Weather Hero Card & Extended Forecast -->
+      <div class="grid-left-col">
+        
+        <!-- Primary Weather Card -->
+        <article class="weather-hero-card glass-panel" id="weather-hero-card">
+          <div class="hero-top-bar">
+            <div class="location-details">
+              <div class="location-heading">
+                <svg class="pin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <h2 class="city-name" id="city-name">New Delhi</h2>
+                <span class="state-badge" id="state-badge">Delhi</span>
+                <span class="country-badge" id="country-badge">India 🇮🇳</span>
+                <span class="user-loc-indicator hidden" id="user-loc-indicator">
+                  <span class="pulse-dot"></span>
+                  <span>Your Location</span>
+                </span>
+                <button type="button" id="favorite-city-btn" class="fav-toggle-btn" title="Add to favorites" aria-label="Bookmark this city">
+                  <svg class="star-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="datetime-display" id="datetime-display">Monday, 26 October • 12:30 PM</p>
+            </div>
+            
+            <div class="weather-badge" id="weather-badge">
+              <span class="badge-dot"></span>
+              <span id="condition-short">Clear Sky</span>
+            </div>
+          </div>
+
+          <div class="hero-center-row">
+            <div class="weather-visual-icon" id="hero-weather-icon">
+              <!-- SVG dynamically injected -->
+            </div>
+            
+            <div class="hero-temp-block">
+              <div class="temp-number-wrap">
+                <span class="temp-value" id="current-temp">18</span>
+                <span class="temp-degree">°</span>
+              </div>
+              <div class="temp-subtext">
+                <span class="feels-like">Feels like <strong id="feels-like-temp">17°</strong></span>
+                <span class="temp-range-badge">
+                  <span class="high-indicator">↑ <span id="temp-high">21°</span></span>
+                  <span class="low-indicator">↓ <span id="temp-low">12°</span></span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-condition-summary">
+            <p class="condition-description" id="condition-description">Sunny skies with a gentle breeze</p>
+            <p class="condition-advice" id="condition-advice">Perfect weather for outdoor activities</p>
+          </div>
+
+          <div class="hero-quick-stats">
+            <div class="quick-stat-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              <div>
+                <span class="label">Humidity</span>
+                <span class="val" id="hero-humidity">58%</span>
+              </div>
+            </div>
+            <div class="quick-stat-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>
+              <div>
+                <span class="label">Wind</span>
+                <span class="val" id="hero-wind">14 km/h</span>
+              </div>
+            </div>
+            <div class="quick-stat-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <div>
+                <span class="label">UV Index</span>
+                <span class="val" id="hero-uv">Moderate (3)</span>
+              </div>
+            </div>
+            <div class="quick-stat-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="M12 12v4"/></svg>
+              <div>
+                <span class="label">Pressure</span>
+                <span class="val" id="hero-pressure">1016 hPa</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 24-Hour Forecast Timeline -->
+        <section class="hourly-forecast-panel glass-panel" id="hourly-forecast-panel">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <h3>Hourly Projections (24h)</h3>
+            </div>
+            <span class="section-subtag">Scroll for timeline →</span>
+          </div>
+
+          <!-- Hourly Carousel / Slider -->
+          <div class="hourly-scroll-container" id="hourly-scroll-container" tabindex="0" role="region" aria-label="Hourly weather timeline">
+            <!-- Dynamic Hourly Items Injected Here -->
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Detailed Metrics Grid & 7-Day Extended Forecast -->
+      <div class="grid-right-col">
+
+        <!-- 6-Metric Environmental Dashboard -->
+        <section class="environmental-metrics-section" aria-label="Detailed environmental indicators">
+          <div class="metrics-grid">
+
+            <!-- Card 1: Wind & Direction -->
+            <div class="metric-card glass-panel" id="metric-wind">
+              <div class="metric-head">
+                <span class="metric-title">Wind & Gusts</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+              </div>
+              <div class="metric-main-val">
+                <span class="val-number" id="detail-wind-speed">14</span>
+                <span class="val-unit" id="detail-wind-unit">km/h</span>
+              </div>
+              <div class="compass-row">
+                <div class="compass-dial">
+                  <div class="compass-needle" id="compass-needle"></div>
+                  <span class="compass-mark n">N</span>
+                  <span class="compass-mark e">E</span>
+                  <span class="compass-mark s">S</span>
+                  <span class="compass-mark w">W</span>
+                </div>
+                <div class="compass-info">
+                  <span class="direction-text" id="wind-direction-text">South-Southwest (196°)</span>
+                  <span class="gust-text" id="wind-gust-text">Gusts up to 21 km/h</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Sunrise & Sunset Progress -->
+            <div class="metric-card glass-panel" id="metric-sun">
+              <div class="metric-head">
+                <span class="metric-title">Sun Cycle</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+              </div>
+              <div class="sun-arc-wrap">
+                <svg class="sun-arc-svg" viewBox="0 0 200 100" preserveAspectRatio="none">
+                  <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4" stroke-dasharray="4,4"/>
+                  <path id="sun-progress-path" d="M 20 90 A 80 80 0 0 1 100 10" fill="none" stroke="url(#sun-gradient)" stroke-width="4"/>
+                  <circle id="sun-position-dot" cx="100" cy="10" r="7" fill="#fbbf24" filter="drop-shadow(0 0 8px rgba(251,191,36,0.9))"/>
+                  <defs>
+                    <linearGradient id="sun-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#f59e0b"/>
+                      <stop offset="100%" stop-color="#fbbf24"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div class="sun-times-row">
+                <div class="sun-time-block">
+                  <span class="sun-label">Sunrise</span>
+                  <span class="sun-val" id="sunrise-time">06:43 AM</span>
+                </div>
+                <div class="sun-time-block right">
+                  <span class="sun-label">Sunset</span>
+                  <span class="sun-val" id="sunset-time">05:14 PM</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Humidity & Dew Point -->
+            <div class="metric-card glass-panel" id="metric-humidity">
+              <div class="metric-head">
+                <span class="metric-title">Humidity & Comfort</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+              <div class="metric-main-val">
+                <span class="val-number" id="detail-humidity">64</span>
+                <span class="val-unit">%</span>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-fill" id="humidity-progress" style="width: 64%;"></div>
+              </div>
+              <p class="metric-footer-text" id="dew-point-text">The dew point is 11° right now</p>
+            </div>
+
+            <!-- Card 4: Visibility -->
+            <div class="metric-card glass-panel" id="metric-visibility">
+              <div class="metric-head">
+                <span class="metric-title">Visibility</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <div class="metric-main-val">
+                <span class="val-number" id="detail-visibility">10.0</span>
+                <span class="val-unit" id="detail-visibility-unit">km</span>
+              </div>
+              <div class="badge-status-line">
+                <span class="status-indicator-tag green" id="visibility-status-tag">Perfect Clarity</span>
+              </div>
+              <p class="metric-footer-text" id="visibility-desc">Unobstructed horizon visibility</p>
+            </div>
+
+            <!-- Card 5: UV Radiation Index -->
+            <div class="metric-card glass-panel" id="metric-uv">
+              <div class="metric-head">
+                <span class="metric-title">UV Radiation</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              </div>
+              <div class="metric-main-val">
+                <span class="val-number" id="detail-uv-val">2.4</span>
+                <span class="val-unit" id="detail-uv-category">Low</span>
+              </div>
+              <div class="progress-bar-wrap uv-bar">
+                <div class="progress-fill uv-fill" id="uv-progress" style="width: 24%;"></div>
+              </div>
+              <p class="metric-footer-text" id="uv-advice">No special sun protection required</p>
+            </div>
+
+            <!-- Card 6: Atmospheric Pressure & Cloud Cover -->
+            <div class="metric-card glass-panel" id="metric-pressure">
+              <div class="metric-head">
+                <span class="metric-title">Barometric Pressure</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14 14-4-4"/><circle cx="12" cy="12" r="10"/><path d="M12 2v2"/><path d="M12 20v2"/></svg>
+              </div>
+              <div class="metric-main-val">
+                <span class="val-number" id="detail-pressure">1016</span>
+                <span class="val-unit">hPa</span>
+              </div>
+              <div class="badge-status-line">
+                <span class="status-indicator-tag blue" id="pressure-status-tag">Normal & Stable</span>
+              </div>
+              <p class="metric-footer-text" id="cloud-cover-text">Cloud coverage: 42%</p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 7-Day Extended Forecast Panel -->
+        <section class="daily-forecast-panel glass-panel" id="daily-forecast-panel">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <h3>7-Day Extended Forecast</h3>
+            </div>
+            <span class="section-subtag">Weekly Outlook</span>
+          </div>
+
+          <div class="daily-forecast-list" id="daily-forecast-list">
+            <!-- Dynamic 7 Day Cards Injected Here -->
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- All Indian States & Union Territories Modal -->
+  <div class="modal-backdrop hidden" id="all-states-modal" role="dialog" aria-modal="true" aria-labelledby="all-states-title">
+    <div class="modal-card glass-panel all-states-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-flag-icon">🇮🇳</span>
+          <div>
+            <h3 id="all-states-title">All Indian States & Union Territories</h3>
+            <p class="modal-subtitle">28 States & 8 Union Territories • Real-Time Weather Intelligence</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="close-all-states-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body states-modal-body">
+        <!-- Search & Filter bar -->
+        <div class="states-search-filter-bar">
+          <div class="search-input-wrapper states-search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input 
+              type="text" 
+              id="state-search-input" 
+              class="city-search-input" 
+              placeholder="Search state, capital or city (e.g. Maharashtra, Jaipur, Kerala)..." 
+              autocomplete="off"
+            >
+          </div>
+          
+          <div class="region-filter-tabs" id="region-filter-tabs">
+            <button type="button" class="region-tab active" data-region="all">All (36)</button>
+            <button type="button" class="region-tab" data-region="North">North (7)</button>
+            <button type="button" class="region-tab" data-region="South">South (5)</button>
+            <button type="button" class="region-tab" data-region="West">West (3)</button>
+            <button type="button" class="region-tab" data-region="East">East (4)</button>
+            <button type="button" class="region-tab" data-region="Central">Central (2)</button>
+            <button type="button" class="region-tab" data-region="Northeast">Northeast (8)</button>
+            <button type="button" class="region-tab" data-region="UT">UTs (8)</button>
+          </div>
+        </div>
+
+        <!-- User Detected Location Quick Jump Banner -->
+        <div class="user-location-callout" id="user-location-callout">
+          <div class="user-loc-text">
+            <span class="user-loc-heading">📍 Your Current Detected Location</span>
+            <span class="user-loc-desc" id="user-loc-desc">Detecting live GPS coordinates in India...</span>
+          </div>
+          <button type="button" class="detect-gps-action-btn" id="modal-refresh-gps-btn" title="Refresh live GPS location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
+            <span>Detect My GPS</span>
+          </button>
+        </div>
+
+        <!-- States Grid (36 States & UTs) -->
+        <div class="states-grid" id="states-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add & Manage Locations Modal -->
+  <div class="modal-backdrop hidden" id="locations-modal" role="dialog" aria-modal="true" aria-labelledby="locations-modal-title">
+    <div class="modal-card glass-panel locations-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <h3 id="locations-modal-title">Add & Manage Indian Cities</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="close-locations-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Add Location Form -->
+        <div class="add-location-search-box">
+          <label for="modal-city-input">Search & Add an Indian City or District:</label>
+          <div class="modal-search-row">
+            <div class="search-input-wrapper modal-input-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input 
+                type="text" 
+                id="modal-city-input" 
+                class="city-search-input" 
+                placeholder="Type Indian city or district (e.g. Pune, Varanasi, Shimla)..." 
+                autocomplete="off"
+              >
+            </div>
+            <button type="button" id="modal-geo-btn" class="secondary-btn" title="Add your current GPS location in India">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
+              <span>GPS</span>
+            </button>
+          </div>
+          <!-- Modal autocomplete results -->
+          <div id="modal-suggestions-list" class="modal-suggestions-list hidden"></div>
+        </div>
+
+        <!-- Saved Locations List Header -->
+        <div class="saved-locations-header">
+          <span class="saved-title">Your Saved Cities</span>
+          <span class="saved-count-badge" id="saved-count-badge">6 Pinned</span>
+        </div>
+
+        <!-- Saved Locations Grid/List -->
+        <div class="saved-locations-grid" id="saved-locations-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings & API Key Modal -->
+  <div class="modal-backdrop hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <h3 id="settings-modal-title">API Configuration & Provider</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="close-settings-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- API Status Banner -->
+        <div class="api-status-banner" id="modal-api-status-banner">
+          <div class="status-indicator-icon" id="modal-status-icon">⚡</div>
+          <div class="status-indicator-content">
+            <h4 id="modal-status-title">Active Provider: OpenWeatherMap</h4>
+            <p id="modal-status-desc">Key: <code>3567b3619cf3d391f319c063da450977</code></p>
+          </div>
+        </div>
+
+        <!-- Note about OpenWeatherMap activation delay -->
+        <div class="info-callout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div>
+            <strong>OpenWeatherMap Key Activation:</strong>
+            <p>New OpenWeatherMap keys typically require 10 to 60 minutes after generation to propagate on OpenWeatherMap's global servers. Aetheria provides an automatic live fallback so you enjoy uninterrupted weather updates while your key activates.</p>
+          </div>
+        </div>
+
+        <!-- API Key Input Field -->
+        <div class="form-group">
+          <label for="api-key-input">OpenWeatherMap API Key:</label>
+          <div class="input-with-button">
+            <input 
+              type="text" 
+              id="api-key-input" 
+              class="form-input" 
+              value="3567b3619cf3d391f319c063da450977" 
+              placeholder="Paste 32-character API key..."
+              spellcheck="false"
+            >
+            <button type="button" id="test-key-btn" class="secondary-btn">Test Key</button>
+          </div>
+          <span class="field-hint" id="key-test-result">Click "Test Key" to ping the OpenWeatherMap servers.</span>
+        </div>
+
+        <!-- Provider Preference Toggle -->
+        <div class="form-group">
+          <label>Weather Data Engine:</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="provider-choice" value="auto" checked>
+              <span><strong>Smart Auto:</strong> OpenWeatherMap (with seamless fallback)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="provider-choice" value="owm">
+              <span><strong>OpenWeatherMap Only:</strong> Strict API mode</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="provider-choice" value="openmeteo">
+              <span><strong>Open-Meteo High-Res:</strong> No API key needed</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="primary-btn" id="save-settings-btn">Save & Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
