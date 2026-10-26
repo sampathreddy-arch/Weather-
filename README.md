@@ -1,63 +1,120 @@
-# Aetheria Weather 🌤️
+# 🌤️ Aetheria Weather India
 
-A modern real-time meteorological web application designed with frosted glassmorphism, responsive data grids, 60 FPS atmospheric particle effects, and multi-provider weather intelligence.
-
----
-
-## ⚡ Features
-
-- **Integrated OpenWeatherMap API:** Configured with API key `3567b3619cf3d391f319c063da450977`.
-- **Zero-Downtime Smart Fallback:** When a new API key is propagating on OpenWeatherMap's global servers (typically 10–60 minutes), the app automatically switches to live satellite meteorological data so the app remains 100% operational.
-- **Exclusive India Focus & All 36 States/UTs Explorer:**
-  - 🇮🇳 **All 28 States & 8 Union Territories:** Dedicated interactive explorer with regional filters (North, South, West, East, Central, Northeast, UTs), capital city hubs, and 1-click live weather.
-  - 🏛️ **Quick State Jump Dropdown:** Instant dropdown in the top bar to jump directly to any state or union territory across India.
-  - 📍 **Automatic User Location GPS:** Detects the user's exact city, district, and state in India via browser geolocation and reverse geocoding with visual "Your Location" indicators.
-  - 🔍 **Strict India-Only Search:** Real-time geocoding autocomplete strictly filtered to Indian cities, districts, and towns (`country_code: IN`).
-- **Dynamic 60 FPS Canvas Background:**
-  - ☀️ Solar flares & golden dust motes for clear sunny days
-  - 🌙 Twinkling starry night sky
-  - 🌧️ Realistic angled rain streaks
-  - ⚡ Thunderstorm with electric flashes
-  - ❄️ Drifting snowflakes
-  - ☁️ Floating cloud puffs & mist
-- **24-Hour Hourly Timeline:** Horizontal scrolling cards with rain chance and trend indicators.
-- **7-Day Extended Forecast:** Daily outlook featuring min/max temperature comparison gradient bars.
-- **6-Metric Environmental Dashboard:**
-  - Wind speed, gusts, and animated 360° compass needle
-  - Solar cycle arc tracking sunrise and sunset progression
-  - Relative humidity & comfort dew point
-  - Horizon visibility
-  - UV radiation index with safety recommendations
-  - Barometric pressure & cloud coverage
-- **Unit Conversion:** Instant one-click toggle between Celsius (°C, km/h) and Fahrenheit (°F, mph).
-- **Pinned Indian Favorites Bar:** Pre-configured with major Indian cities (New Delhi, Mumbai, Bengaluru, Kolkata, Chennai, Hyderabad, Ahmedabad, Jaipur) with LocalStorage persistence.
-- **API Key & Engine Manager:** Test key connection latency, update API keys, or switch between OpenWeatherMap and Open-Meteo engines directly in the UI.
+A full-stack real-time weather dashboard exclusively built for India — covering all **28 States & 8 Union Territories** with live meteorological data, dynamic atmospheric visuals, and an Express.js backend with server-side caching.
 
 ---
 
-## 🚀 How to Run
+## ✨ Features
 
-### Option 1: Open Directly in Any Web Browser
-Simply double-click [`index.html`](file:///c:/Users/madur/OneDrive/Documents/wheater/index.html) or right-click and open with your preferred browser (Chrome, Edge, Brave, Firefox, etc.).
+### 🇮🇳 India-First Design
+- **All 36 States & UTs Explorer** — Browse every Indian state and union territory with regional filters (North, South, East, West, Central, Northeast, UTs)
+- **Auto GPS Detection** — Detects your city and state in India via browser geolocation + reverse geocoding
+- **India-Only Search** — Autocomplete strictly filtered to Indian cities, districts, and towns
+- **Quick State Jump** — Instant dropdown to navigate any state's weather in one click
+- **Pinned Cities Bar** — Pre-loaded with major Indian metros (Delhi, Mumbai, Bengaluru, Kolkata, Chennai, Hyderabad, Ahmedabad, Jaipur)
 
-### Option 2: Run via Local Server (Running on Port 3000)
-The local server is already running:
-```
-http://localhost:3000
-```
-Or start anytime in terminal:
+### 🌡️ Weather Intelligence
+- **Dual-Engine Data** — OpenWeatherMap (primary) + Open-Meteo satellite (automatic fallback)
+- **Zero-Downtime Fallback** — New API keys propagate in 10–60 min; Open-Meteo keeps the app live in the interim
+- **Server-Side Caching** — 10-minute in-memory cache on the Express backend to preserve API quota
+- **24-Hour Hourly Forecast** — Scrollable cards with rain probability indicators
+- **7-Day Extended Outlook** — Min/max gradient bars for weekly planning
+
+### 🎨 Live Atmospheric Canvas (60 FPS)
+| Condition | Visual Effect |
+|-----------|--------------|
+| ☀️ Clear Day | Solar flares & golden dust motes |
+| 🌙 Clear Night | Twinkling starfield |
+| 🌧️ Rain | Realistic angled rain streaks |
+| ⛈️ Thunderstorm | Electric lightning flashes |
+| ❄️ Snow | Drifting snowflakes |
+| ☁️ Clouds / Mist | Floating cloud puffs & fog |
+
+### 📊 6-Metric Environmental Dashboard
+- 💨 Wind speed, gusts & animated 360° compass
+- 🌅 Solar arc tracking sunrise/sunset progression
+- 💧 Relative humidity & dew point comfort index
+- 👁️ Horizon visibility rating
+- ☀️ UV radiation index with safety advice
+- 🌡️ Barometric pressure & cloud coverage
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) v18 or higher
+- An [OpenWeatherMap API key](https://home.openweathermap.org/users/sign_up) (free tier works)
+
+### 1. Clone the repository
 ```bash
-python -m http.server 3000
+git clone https://github.com/sampathreddy-arch/Weather-.git
+cd Weather-
 ```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Configure environment
+```bash
+cp .env.example .env
+```
+Open `.env` and add your OpenWeatherMap API key:
+```env
+OPENWEATHER_API_KEY=your_api_key_here
+```
+
+### 4. Start the server
+```bash
+npm start
+```
+
+Open **http://localhost:3000** in your browser. 🎉
+
+---
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Server status & uptime |
+| `GET` | `/api/weather?lat=&lon=&city=&state=` | Fetch weather with caching |
+| `GET` | `/api/search?q=city` | India-only geocoding search |
+| `GET` | `/api/locate?lat=&lon=` | Reverse geocode to city/state |
+| `GET` | `/api/states` | All 28 States & 8 UTs dataset |
+| `GET` | `/api/states/:id` | Single state by ID or name |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-wheater/
-├── index.html     # Semantic HTML5 layout with accessible ARIA roles
-├── style.css      # Vanilla CSS design system, glassmorphic styling & themes
-├── app.js         # Weather data fetcher, atmospheric canvas & UI engine
-└── README.md      # Documentation & quick start guide
+Weather-/
+├── index.html          # Semantic HTML5 UI with ARIA roles
+├── style.css           # Vanilla CSS — glassmorphism, animations & themes
+├── app.js              # Frontend: weather engine, canvas & UI logic
+├── server.js           # Express backend: API proxy, caching & geocoding
+├── package.json        # Node.js dependencies
+├── .env.example        # Environment variable template
+└── README.md           # You are here
 ```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | HTML5, Vanilla CSS, JavaScript (ES2022) |
+| Backend | Node.js, Express.js |
+| Weather APIs | OpenWeatherMap, Open-Meteo |
+| Geocoding | Open-Meteo Geocoding, Nominatim (OSM) |
+| Canvas | HTML5 Canvas API (60 FPS animations) |
+
+---
+
+## 📄 License
+
+ISC © Aetheria Weather
